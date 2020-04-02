@@ -9,7 +9,7 @@ import CoreBluetooth
 import Combine
 import os.log
 
-final class CBCentralManagerDelegateWrapper: NSObject, CBCentralManagerDelegate {
+final class CBCentralManagerDelegateWrapper: NSObject, CentralManagerDelegate {
 
     let didUpdateState = PassthroughSubject<CBManagerState, Never>()
     let didDiscoverPeripheral = PassthroughSubject<CBPeripheral, Never>()
@@ -17,9 +17,16 @@ final class CBCentralManagerDelegateWrapper: NSObject, CBCentralManagerDelegate 
     let didFailToConnectToPeripheral = PassthroughSubject<(CBPeripheral, Error?), Never>()
     let didDisconnectPeripheral = PassthroughSubject<(CBPeripheral, Error?), Never>()
 
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    func centralManagerDidUpdateState(central: CentralManager) {
         os_log("centralManagerDidUpdateState(_) new state = %s", central.state.debugDescription)
         didUpdateState.send(central.state)
+    }
+}
+
+extension CBCentralManagerDelegateWrapper: CBCentralManagerDelegate {
+
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        self.centralManagerDidUpdateState(central: central)
     }
 
     func centralManager(_ central: CBCentralManager,
@@ -44,6 +51,7 @@ final class CBCentralManagerDelegateWrapper: NSObject, CBCentralManagerDelegate 
         os_log("centralManager(_: didDisconnectPeripheral) %s", peripheral.name ?? "N/A")
         didDisconnectPeripheral.send((peripheral, error))
     }
+
 }
 
 extension CBManagerState: CustomDebugStringConvertible {

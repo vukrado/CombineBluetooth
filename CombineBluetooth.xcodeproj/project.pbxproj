@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF01785B24365D1E00827433 /* BluetoothManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF01785A24365D1E00827433 /* BluetoothManagerTests.swift */; };
 		BFE4644E2434F70000FADD05 /* CombineBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFE464442434F70000FADD05 /* CombineBluetooth.framework */; };
 		BFE464552434F70000FADD05 /* CombineBluetooth.h in Headers */ = {isa = PBXBuildFile; fileRef = BFE464472434F70000FADD05 /* CombineBluetooth.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFE4645F2434F72B00FADD05 /* BluetoothError.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE4645E2434F72B00FADD05 /* BluetoothError.swift */; };
@@ -24,7 +25,6 @@
 		BFE464732434FD4400FADD05 /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE464722434FD4400FADD05 /* Service.swift */; };
 		BFE464742434FD4400FADD05 /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE464722434FD4400FADD05 /* Service.swift */; };
 		BFE46479243561A100FADD05 /* CharacteristicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE46478243561A100FADD05 /* CharacteristicTests.swift */; };
-		BFE4647B24356B1A00FADD05 /* MockCharacteristic.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE4647A24356B1A00FADD05 /* MockCharacteristic.swift */; };
 		BFE4647C24356B1A00FADD05 /* MockCharacteristic.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE4647A24356B1A00FADD05 /* MockCharacteristic.swift */; };
 /* End PBXBuildFile section */
 
@@ -39,6 +39,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BF01785A24365D1E00827433 /* BluetoothManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManagerTests.swift; sourceTree = "<group>"; };
 		BFE464442434F70000FADD05 /* CombineBluetooth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CombineBluetooth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFE464472434F70000FADD05 /* CombineBluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CombineBluetooth.h; sourceTree = "<group>"; };
 		BFE464482434F70000FADD05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -113,6 +114,7 @@
 				BFE464542434F70000FADD05 /* Info.plist */,
 				BFE46478243561A100FADD05 /* CharacteristicTests.swift */,
 				BFE4647A24356B1A00FADD05 /* MockCharacteristic.swift */,
+				BF01785A24365D1E00827433 /* BluetoothManagerTests.swift */,
 			);
 			path = CombineBluetoothTests;
 			sourceTree = "<group>";
@@ -264,7 +266,6 @@
 				BFE4645F2434F72B00FADD05 /* BluetoothError.swift in Sources */,
 				BFE4646D2434FD2700FADD05 /* Characteristic.swift in Sources */,
 				BFE464672434FCE200FADD05 /* CBCentralDelegateWrapper.swift in Sources */,
-				BFE4647B24356B1A00FADD05 /* MockCharacteristic.swift in Sources */,
 				BFE4646A2434FD1700FADD05 /* CBPeripheralDelegateWrapper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -281,6 +282,7 @@
 				BFE464602434F72B00FADD05 /* BluetoothError.swift in Sources */,
 				BFE4646E2434FD2700FADD05 /* Characteristic.swift in Sources */,
 				BFE464682434FCE200FADD05 /* CBCentralDelegateWrapper.swift in Sources */,
+				BF01785B24365D1E00827433 /* BluetoothManagerTests.swift in Sources */,
 				BFE4646B2434FD1700FADD05 /* CBPeripheralDelegateWrapper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
