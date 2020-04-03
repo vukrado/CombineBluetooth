@@ -12,6 +12,7 @@ public enum BluetoothError: Error {
     case failedToDiscoverCharacteristics
     case failedToDiscoverServices
     case noCharacteristicsForService
+    case noServicesForPeripheral
     case objectDestroyed
     case scanInProgress
     case scanTimedOut

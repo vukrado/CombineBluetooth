@@ -92,11 +92,7 @@ public final class BluetoothManager: NSObject {
             scanSubject.send(completion: .failure(.scanInProgress))
         }
 
-        scanCancellable = centralManagerDelegateWrapper.didDiscoverPeripheral.sink { [weak self] (discoveredPeripheral) in
-            guard let self = self else {
-                scanSubject.send(completion: .failure(.objectDestroyed))
-                return
-            }
+        scanCancellable = centralManagerDelegateWrapper.didDiscoverPeripheral.sink { [unowned self] (discoveredPeripheral) in
             let peripheral = Peripheral(peripheral: discoveredPeripheral, bluetoothManager: self)
             self.peripherals.append(peripheral)
             scanSubject.send(peripheral)
@@ -130,13 +126,14 @@ public final class BluetoothManager: NSObject {
             .sink(receiveValue: { _ in
                 connectSubject.send(completion: .failure(.failedToConnect))
             })
-        centralManager.connect(peripheral.peripheral, options: nil)
+        // swiftlint:disable force_cast
+        centralManager.connect(peripheral.peripheral as! CBPeripheral, options: nil)
 
         return connectSubject.eraseToAnyPublisher()
     }
 }
 
-protocol CentralManager {
+public protocol CentralManager {
     var centralManagerDelegate: CentralManagerDelegate? { get set }
     var isScanning: Bool { get }
     func scanForPeripherals(withServices serviceUUIDs: [CBUUID]?, options: [String: Any]?)
@@ -145,7 +142,7 @@ protocol CentralManager {
     var state: CBManagerState { get }
 }
 
-protocol CentralManagerDelegate: class {
+public protocol CentralManagerDelegate: class {
     func centralManagerDidUpdateState(central: CentralManager)
     func centralManager(central: CentralManager, didConnect peripheral: CBPeripheral)
     func centralManager(central: CentralManager,
@@ -157,8 +154,8 @@ protocol CentralManagerDelegate: class {
 }
 
 extension CBCentralManager: CentralManager {
-    // swiftlint:disable force_cast implicit_getter
-    var centralManagerDelegate: CentralManagerDelegate? {
+    // swiftlint:disable force_cast
+    public var centralManagerDelegate: CentralManagerDelegate? {
         get { return delegate as! CentralManagerDelegate? }
         set { delegate = newValue as! CBCentralManagerDelegate? }
     }

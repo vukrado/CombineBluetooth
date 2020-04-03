@@ -70,26 +70,4 @@ extension CBCentralManagerDelegateWrapper: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         centralManager(central: central, didDisconnectPeripheral: peripheral, error: error)
     }
-
-}
-
-extension CBManagerState: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        switch self {
-        case .unknown:
-            return "Unknown"
-        case .resetting:
-            return "Resetting"
-        case .unsupported:
-            return "Unsupported"
-        case .unauthorized:
-            return "Unauthorized"
-        case .poweredOff:
-            return "Powered Off"
-        case .poweredOn:
-            return "Powered On"
-        @unknown default:
-            fatalError()
-        }
-    }
 }

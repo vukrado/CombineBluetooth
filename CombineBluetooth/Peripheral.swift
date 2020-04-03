@@ -19,7 +19,7 @@ public final class Peripheral {
     private var discoverCharacteristicsCancellable: Cancellable?
 
     /// Underlying instance of  a `CBPeripheral`.
-    public let peripheral: CBPeripheral
+    public var peripheral: BluetoothPeripheral
 
     /// The connection state of the peripheral.
     public var state: CBPeripheralState { peripheral.state }
@@ -40,18 +40,18 @@ public final class Peripheral {
     }
 
     // MARK: Initialization
-    init(peripheral: CBPeripheral,
+    init(peripheral: BluetoothPeripheral,
          peripheralDelegateWrapper: CBPeripheralDelegateWrapper = CBPeripheralDelegateWrapper(),
          bluetoothManager: BluetoothManager) {
         self.bluetoothManager = bluetoothManager
         self.peripheral = peripheral
         self.peripheralDelegateWrapper = peripheralDelegateWrapper
-        self.peripheral.delegate = peripheralDelegateWrapper
+        self.peripheral.peripheralDelegate = peripheralDelegateWrapper
     }
 
     // MARK: - Methods
     /// Continous value indicating if the peripheral is in a connected state.
-    /// - Returns:  `True` if the `Peripheral` is in a connected state as a `AnyPublisher<Bool, Never>`.
+    /// - Returns: `True` if the `Peripheral` is in a connected state as a `AnyPublisher<Bool, Never>`.
     public func observeConnection() -> AnyPublisher<Bool, Never> {
         let connected = bluetoothManager.observeConnect().map { _ in true }
         let disconnected = bluetoothManager.observeDisconnect().map { _ in false }
@@ -70,7 +70,7 @@ public final class Peripheral {
             Future<[Service], BluetoothError> { promise in
                 self.servicesCancellable = self.peripheralDelegateWrapper.didDiscoverServices.sink(receiveValue: { (peripheral, error) in
                         if error == nil {
-                            guard let cbServices = peripheral.services else { return promise(.failure(.failedToDiscoverServices))}
+                            guard let cbServices = peripheral.services else { return promise(.failure(.noServicesForPeripheral))}
                             let services = cbServices.map { Service(service: $0, peripheral: self)}
                             return promise(.success(services))
                         }
@@ -92,8 +92,9 @@ public final class Peripheral {
         self.discoverCharacteristicsCancellable = peripheralDelegateWrapper
             .didDiscoverCharacteristicsForServices
             .sink(receiveValue: {(_, cbService, error) in
-                if error != nil {
+                guard error == nil else {
                     discoverCharacteristicsSubject.send(completion: .failure(.failedToDiscoverCharacteristics))
+                    return
                 }
 
                 if service.service == cbService {
@@ -103,6 +104,7 @@ public final class Peripheral {
                     }
                     let charactistics = cbCharacteristics.map { Characteristic(characteristic: $0) }
                     discoverCharacteristicsSubject.send(charactistics)
+                    discoverCharacteristicsSubject.send(completion: .finished)
                 }
             })
 
@@ -112,9 +114,33 @@ public final class Peripheral {
     }
 }
 
+public protocol BluetoothPeripheral {
+    var peripheralDelegate: PeripheralDelegate? { get set }
+    var state: CBPeripheralState { get }
+    var services: [CBService]? { get }
+    var name: String? { get }
+    func discoverCharacteristics(_ characteristicUUIDs: [CBUUID]?, for service: CBService)
+    func discoverServices(_ serviceUUIDs: [CBUUID]?)
+}
+
+public protocol PeripheralDelegate: class {
+    func peripheral(peripheral: BluetoothPeripheral, didDiscoverServices error: Error?)
+    func peripheral(peripheral: BluetoothPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?)
+//    func peripheral(peripheral: BluetoothPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?)
+//    func peripheral(peripheral: BluetoothPeripheral, didModifyServices invalidatedServices: [CBService])
+}
+
+extension CBPeripheral: BluetoothPeripheral {
+    // swiftlint:disable force_cast
+    public var peripheralDelegate: PeripheralDelegate? {
+        get { return delegate as! PeripheralDelegate? }
+        set { delegate = newValue as! CBPeripheralDelegate? }
+    }
+}
+
 // MARK: - Equatable
 extension Peripheral: Equatable {
     public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
-        return lhs.peripheral == rhs.peripheral
+        return lhs.peripheral as! CBPeripheral == rhs.peripheral as! CBPeripheral
     }
 }

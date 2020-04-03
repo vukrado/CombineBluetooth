@@ -8,6 +8,6 @@
 
 import CoreBluetooth
 
-final class MockPeripheral: CBPeripheral {
+final class MockCBPeripheral: CBPeripheral {
     init(_ workaround: Void = ()) { }
 }
