@@ -38,14 +38,29 @@ final class CharacteristicTests: XCTestCase {
     }
 
     func testCharacteristicReturnsUUID() {
+        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
+                                                    properties: .read,
+                                                    value: Data(base64Encoded: "test"),
+                                                    isNotifying: false)
+        sut = Characteristic(characteristic: mockCharacteristic)
+        XCTAssertEqual(sut.uuid, mockCharacteristic.uuid)
+    }
 
-//        let testMock = MockCharacteristic(type: CBUUID())
-//
-//        sut = Characteristic(characteristic: testMock)
-//        XCTAssertEqual(sut.uuid, mockCharacteristic.uuid)
+    func testCharacteristicIsNotifying() {
+        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
+                                                    properties: .read,
+                                                    value: Data(base64Encoded: "test"),
+                                                    isNotifying: true)
+        sut = Characteristic(characteristic: mockCharacteristic)
+        XCTAssertTrue(sut.isNotifying, "Characteristic should be notifying")
+    }
+
+    func testCharacteristicProperties() {
+        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
+                                                    properties: .writeWithoutResponse,
+                                                    value: Data(base64Encoded: "test"),
+                                                    isNotifying: true)
+        sut = Characteristic(characteristic: mockCharacteristic)
+        XCTAssertEqual(sut.properties, .writeWithoutResponse)
     }
 }
-
-
-
-

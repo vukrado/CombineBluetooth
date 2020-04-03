@@ -7,7 +7,6 @@
 
 import CoreBluetooth
 
-
 /// Combine wrapper for CoreBluetooth's [CBCharacteristic](https://developer.apple.com/documentation/corebluetooth/cbcharacteristic)
 public final class Characteristic {
 
