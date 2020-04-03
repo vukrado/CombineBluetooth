@@ -13,37 +13,135 @@ import Combine
 final class BluetoothManagerTests: XCTestCase {
 
     var sut: BluetoothManager!
+    var mockCentralManager: MockCentralManager!
+
+    override func setUp() {
+        mockCentralManager = MockCentralManager()
+        sut = BluetoothManager(centralManager: mockCentralManager)
+    }
+
+    override func tearDown() {
+        mockCentralManager = nil
+        sut = nil
+    }
 
     func testObserveState() {
-        let mockCentralManager = MockCentralManager()
-        sut = BluetoothManager(centralManager: mockCentralManager)
         let cancelable = sut.observeState().sink(receiveValue: { state in
-            XCTAssertEqual(state, .poweredOff,
-                           "Expected \(CBManagerState.poweredOff) got \(state)")
+            XCTAssertEqual(state, .poweredOff)
         })
         mockCentralManager.state = .poweredOff
         mockCentralManager.centralManagerDelegate?.centralManagerDidUpdateState(central: mockCentralManager)
         XCTAssertNotNil(cancelable)
     }
-}
 
-final class MockCentralManager: CentralManager {
-    weak var centralManagerDelegate: CentralManagerDelegate?
+    func testObserveConnect() {
+        let mockPeripheral: MockPeripheral = MockPeripheral()
+        mockPeripheral.addObserver(mockPeripheral, forKeyPath: "delegate", options: .new, context: nil)
+        let cancellable = sut.observeConnect().sink(receiveValue: { peripheral in
+            XCTAssertEqual(peripheral.peripheral, mockPeripheral)
+        })
 
-    var isScanning: Bool = false
-
-    func scanForPeripherals(withServices serviceUUIDs: [CBUUID]?, options: [String: Any]?) {
-        ()
+        mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager, didConnect: mockPeripheral)
+        XCTAssertNotNil(cancellable)
     }
 
-    func stopScan() {
-        ()
+    func testObserveDisconnectEmitsPeripheralOnDidDisconnect() {
+        let mockPeripheral: MockPeripheral = MockPeripheral()
+        mockPeripheral.addObserver(mockPeripheral, forKeyPath: "delegate", options: .new, context: nil)
+        let cancellable = sut
+            .observeDisconnect()
+            .sink(receiveCompletion: { XCTFail("Received \($0) when we shouldn't have")},
+                  receiveValue: { peripheral in
+                    XCTAssertEqual(peripheral.peripheral, mockPeripheral)
+            })
+        mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager,
+                                                                  didDisconnectPeripheral: mockPeripheral,
+                                                                  error: nil)
+        XCTAssertNotNil(cancellable)
     }
 
-    func connect(_ peripheral: CBPeripheral, options: [String: Any]?) {
-        ()
+    func testStateReturnsCorrectCentralManagerState() {
+        mockCentralManager.state = .poweredOn
+        XCTAssertEqual(sut.state, .poweredOn)
     }
 
-    var state: CBManagerState = .poweredOff
+    func testScanForPeripheralsEmitsPeripheralThenFinishedEvent() {
+        mockCentralManager.state = .poweredOn
+        let mockPeripheral: MockPeripheral = MockPeripheral()
+        mockPeripheral.addObserver(mockPeripheral, forKeyPath: "delegate", options: .new, context: nil)
+        let cancellable = sut
+            .scanForPeripheral(withServices: nil)
+            .sink(receiveCompletion: { completion in
+                    XCTAssertEqual(completion, .finished)
+                },
+                  receiveValue: { peripheral in
+                    XCTAssertEqual(peripheral.peripheral, mockPeripheral)
+                })
+        mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager,
+                                                                  didDiscover: mockPeripheral,
+                                                                  advertisementData: ["": ""],
+                                                                  rssi: 1)
+        XCTAssertNotNil(cancellable)
+    }
 
+    func testScanForPeripheralEmitsFailureWhenBluetoothIsNotPoweredOn() {
+        let cancellable = sut
+            .scanForPeripheral(withServices: nil)
+            .sink(receiveCompletion: { completion in
+                XCTAssertEqual(completion, .failure(.bluetoothNotOn))
+            }, receiveValue: { peripheral in
+                XCTFail("Should not receive peripheral, received \(peripheral)")
+            })
+
+        XCTAssertNotNil(cancellable)
+    }
+
+    func testScanForPeripheralEmitsFailureWhenScanIsInProgress() {
+        mockCentralManager.state = .poweredOn
+        mockCentralManager.isScanning = true
+
+        let cancellable = sut
+            .scanForPeripheral(withServices: nil)
+            .sink(receiveCompletion: { completion in
+                XCTAssertEqual(completion, .failure(.scanInProgress))
+            }, receiveValue: { peripheral in
+                XCTFail("Should not receive peripheral, received \(peripheral)")
+            })
+
+        XCTAssertNotNil(cancellable)
+    }
+
+    func testConnectToPeripheralEmitsPeripheral() {
+        mockCentralManager.state = .poweredOn
+        let mockPeripheral: MockPeripheral = MockPeripheral()
+        mockPeripheral.addObserver(mockPeripheral, forKeyPath: "delegate", options: .new, context: nil)
+        let peripheral = Peripheral(peripheral: mockPeripheral, bluetoothManager: sut)
+        let cancellable = sut
+            .connectToPeripheral(peripheral)
+            .sink(receiveCompletion: { completion in
+                XCTAssertEqual(completion, .finished)
+            }, receiveValue: { connectedPeripheral in
+                XCTAssertEqual(connectedPeripheral, peripheral)
+            })
+
+        mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager, didConnect: mockPeripheral)
+        XCTAssertNotNil(cancellable)
+    }
+
+    func testConnectToPeripheralEmitsFailure() {
+        mockCentralManager.state = .poweredOn
+        let mockPeripheral: MockPeripheral = MockPeripheral()
+        mockPeripheral.addObserver(mockPeripheral, forKeyPath: "delegate", options: .new, context: nil)
+        let peripheral = Peripheral(peripheral: mockPeripheral, bluetoothManager: sut)
+        let cancellable = sut
+            .connectToPeripheral(peripheral)
+            .sink(receiveCompletion: { completion in
+                XCTAssertEqual(completion, .failure(.failedToConnect))
+            }, receiveValue: { connectedPeripheral in
+                XCTFail("Should not receive a peripheral but received \(connectedPeripheral)")
+            })
+
+        mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager, didFailToConnect: mockPeripheral, error: nil)
+        XCTAssertNotNil(cancellable)
+    }
 }

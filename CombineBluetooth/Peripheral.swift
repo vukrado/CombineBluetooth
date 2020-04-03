@@ -111,3 +111,10 @@ public final class Peripheral {
         return discoverCharacteristicsSubject.eraseToAnyPublisher()
     }
 }
+
+// MARK: - Equatable
+extension Peripheral: Equatable {
+    public static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
+        return lhs.peripheral == rhs.peripheral
+    }
+}

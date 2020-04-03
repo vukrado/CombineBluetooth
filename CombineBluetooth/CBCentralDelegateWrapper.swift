@@ -21,8 +21,31 @@ final class CBCentralManagerDelegateWrapper: NSObject, CentralManagerDelegate {
         os_log("centralManagerDidUpdateState(_) new state = %s", central.state.debugDescription)
         didUpdateState.send(central.state)
     }
+
+    func centralManager(central: CentralManager,
+                        didDiscover peripheral: CBPeripheral,
+                        advertisementData: [String: Any],
+                        rssi RSSI: NSNumber) {
+        os_log("centralManager(didDiscover:) peripheral %s,", peripheral.name ?? "N/A")
+        didDiscoverPeripheral.send(peripheral)
+    }
+    func centralManager(central: CentralManager, didConnect peripheral: CBPeripheral) {
+        os_log("centralManager(_: didConnect:) to peripheral %s", peripheral.name ?? "N/A")
+        didConnectToPeripheral.send(peripheral)
+    }
+
+    func centralManager(central: CentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        os_log("centralManager(_: didFailToConnect) to peripheral %s", peripheral.name ?? "N/A")
+        didFailToConnectToPeripheral.send((peripheral, error))
+    }
+
+    func centralManager(central: CentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        os_log("centralManager(_: didDisconnectPeripheral) %s", peripheral.name ?? "N/A")
+        didDisconnectPeripheral.send((peripheral, error))
+    }
 }
 
+// MARK: - CBCentralManagerDelegate
 extension CBCentralManagerDelegateWrapper: CBCentralManagerDelegate {
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -33,23 +56,19 @@ extension CBCentralManagerDelegateWrapper: CBCentralManagerDelegate {
                         didDiscover peripheral: CBPeripheral,
                         advertisementData: [String: Any],
                         rssi RSSI: NSNumber) {
-        os_log("centralManager(didDiscover:) peripheral %s,", peripheral.name ?? "N/A")
-        didDiscoverPeripheral.send(peripheral)
+        self.centralManager(central: central, didDiscover: peripheral, advertisementData: advertisementData, rssi: RSSI)
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        os_log("centralManager(_: didConnect:) to peripheral %s", peripheral.name ?? "N/A")
-        didConnectToPeripheral.send(peripheral)
+        self.centralManager(central: central, didConnect: peripheral)
     }
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        os_log("centralManager(_: didFailToConnect) to peripheral %s", peripheral.name ?? "N/A")
-        didFailToConnectToPeripheral.send((peripheral, error))
+        self.centralManager(central: central, didFailToConnect: peripheral, error: error)
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        os_log("centralManager(_: didDisconnectPeripheral) %s", peripheral.name ?? "N/A")
-        didDisconnectPeripheral.send((peripheral, error))
+        centralManager(central: central, didDisconnectPeripheral: peripheral, error: error)
     }
 
 }

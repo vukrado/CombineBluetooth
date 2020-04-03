@@ -33,6 +33,10 @@ public final class BluetoothManager: NSObject {
 
     private var scanCancellable: Cancellable?
     private var connectPeripheralCancellable: Cancellable?
+    private var didFailToConnectCancellable: Cancellable?
+
+    // TODO: Figure out how to store peripheral
+    private var peripherals = [Peripheral]()
 
     // MARK: State
     /// The current state of the manager.
@@ -93,7 +97,9 @@ public final class BluetoothManager: NSObject {
                 scanSubject.send(completion: .failure(.objectDestroyed))
                 return
             }
-            scanSubject.send(Peripheral(peripheral: discoveredPeripheral, bluetoothManager: self))
+            let peripheral = Peripheral(peripheral: discoveredPeripheral, bluetoothManager: self)
+            self.peripherals.append(peripheral)
+            scanSubject.send(peripheral)
             scanSubject.send(completion: .finished)
             self.centralManager.stopScan()
             self.scanCancellable?.cancel()
@@ -120,11 +126,10 @@ public final class BluetoothManager: NSObject {
                 self.connectPeripheralCancellable = nil
             }
 
-        _ = centralManagerDelegateWrapper.didFailToConnectToPeripheral
+        didFailToConnectCancellable = centralManagerDelegateWrapper.didFailToConnectToPeripheral
             .sink(receiveValue: { _ in
                 connectSubject.send(completion: .failure(.failedToConnect))
             })
-
         centralManager.connect(peripheral.peripheral, options: nil)
 
         return connectSubject.eraseToAnyPublisher()
@@ -142,6 +147,13 @@ protocol CentralManager {
 
 protocol CentralManagerDelegate: class {
     func centralManagerDidUpdateState(central: CentralManager)
+    func centralManager(central: CentralManager, didConnect peripheral: CBPeripheral)
+    func centralManager(central: CentralManager,
+                        didDiscover peripheral: CBPeripheral,
+                        advertisementData: [String: Any],
+                        rssi RSSI: NSNumber)
+    func centralManager(central: CentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?)
+    func centralManager(central: CentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?)
 }
 
 extension CBCentralManager: CentralManager {
@@ -150,18 +162,4 @@ extension CBCentralManager: CentralManager {
         get { return delegate as! CentralManagerDelegate? }
         set { delegate = newValue as! CBCentralManagerDelegate? }
     }
-}
-
-
-protocol BluetoothPeripheral {
-    var name: String? { get }
-    var state: CBPeripheralState { get }
-    var services: [CBService]? { get }
-    var delegate: CBPeripheralDelegate? { get set }
-    func discoverServices(_ serviceUUIDs: [CBUUID]?)
-    func discoverCharacteristics(_ characteristicUUIDs: [CBUUID]?, for service: CBService)
-}
-
-extension CBPeripheral: BluetoothPeripheral {
-    
 }
