@@ -38,8 +38,11 @@ final class BluetoothManagerTests: XCTestCase {
         let mockPeripheral: MockCBPeripheral = MockCBPeripheral()
         mockPeripheral.addObserver(mockPeripheral, forKeyPath: "delegate", options: .new, context: nil)
         let cancellable = sut.observeConnect().sink(receiveValue: { peripheral in
-            // swiftlint:disable force_cast
-            XCTAssertEqual(peripheral.peripheral as! MockCBPeripheral, mockPeripheral)
+            guard let peripheral = peripheral.peripheral as? MockCBPeripheral else {
+                XCTFail("Received peripheral should be of type \(MockCBPeripheral.self)")
+                return
+            }
+            XCTAssertEqual(peripheral, mockPeripheral)
         })
 
         mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager, didConnect: mockPeripheral)
@@ -53,8 +56,11 @@ final class BluetoothManagerTests: XCTestCase {
             .observeDisconnect()
             .sink(receiveCompletion: { XCTFail("Received \($0) when we shouldn't have")},
                   receiveValue: { peripheral in
-                    // swiftlint:disable force_cast
-                    XCTAssertEqual(peripheral.peripheral as! MockCBPeripheral, mockPeripheral)
+                    guard let peripheral = peripheral.peripheral as? MockCBPeripheral else {
+                        XCTFail("Received peripheral should be of type \(MockCBPeripheral.self)")
+                        return
+                    }
+                    XCTAssertEqual(peripheral, mockPeripheral)
             })
         mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager,
                                                                   didDisconnectPeripheral: mockPeripheral,
@@ -77,8 +83,11 @@ final class BluetoothManagerTests: XCTestCase {
                     XCTAssertEqual(completion, .finished)
                 },
                   receiveValue: { peripheral in
-                    // swiftlint:disable force_cast
-                    XCTAssertEqual(peripheral.peripheral as! MockCBPeripheral, mockPeripheral)
+                    guard let peripheral = peripheral.peripheral as? MockCBPeripheral else {
+                        XCTFail("Received peripheral should be of type \(MockCBPeripheral.self)")
+                        return
+                    }
+                    XCTAssertEqual(peripheral, mockPeripheral)
                 })
         mockCentralManager.centralManagerDelegate?.centralManager(central: mockCentralManager,
                                                                   didDiscover: mockPeripheral,
