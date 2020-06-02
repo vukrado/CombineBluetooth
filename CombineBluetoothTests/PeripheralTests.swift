@@ -260,6 +260,10 @@ final class PeripheralTests: XCTestCase {
 }
 
 final class MockBluetoothPeripheral: BluetoothPeripheral {
+    func setNotifyValue(_ enabled: Bool, for characteristic: CBCharacteristic) { }
+
+    func readValue(for characteristic: CBCharacteristic) { }
+
     weak var peripheralDelegate: PeripheralDelegate?
 
     var state: CBPeripheralState = .disconnected

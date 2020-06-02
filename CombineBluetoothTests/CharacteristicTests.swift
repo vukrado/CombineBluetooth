@@ -18,49 +18,35 @@ final class CharacteristicTests: XCTestCase {
     }
 
     func testCharacteristicValueReturnsData() {
-        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
-                                                         properties: .read,
-                                                         value: Data(base64Encoded: "test"),
-                                                         isNotifying: false)
+        let mockCharacteristic = MockCharacteristic(uuid: CBUUID(), notifying: false, data: Data(), properties: .read)
         sut = Characteristic(characteristic: mockCharacteristic)
         XCTAssertNotNil(sut.value)
         XCTAssertEqual(sut.value, mockCharacteristic.value)
     }
 
     func testCharacteristicValueReturnsNil() {
-        let mockCharacteristic = CBMutableCharacteristic(type: CBUUID(),
-                                                         properties: .read,
-                                                         value: nil,
-                                                         permissions: .readable)
+        let mockCharacteristic = MockCharacteristic(uuid: CBUUID(), notifying: false, data: nil, properties: .read)
         sut = Characteristic(characteristic: mockCharacteristic)
         XCTAssertNil(sut.value)
         XCTAssertEqual(sut.value, mockCharacteristic.value)
     }
 
     func testCharacteristicReturnsUUID() {
-        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
-                                                    properties: .read,
-                                                    value: Data(base64Encoded: "test"),
-                                                    isNotifying: false)
+        let uuid = CBUUID()
+        let mockCharacteristic = MockCharacteristic(uuid: uuid, notifying: false, data: nil, properties: .read)
         sut = Characteristic(characteristic: mockCharacteristic)
-        XCTAssertEqual(sut.uuid, mockCharacteristic.uuid)
+        XCTAssertEqual(sut.uuid, uuid)
     }
 
     func testCharacteristicIsNotifying() {
-        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
-                                                    properties: .read,
-                                                    value: Data(base64Encoded: "test"),
-                                                    isNotifying: true)
+        let mockCharacteristic = MockCharacteristic(uuid: CBUUID(), notifying: true, data: nil, properties: .read)
         sut = Characteristic(characteristic: mockCharacteristic)
-        XCTAssertTrue(sut.isNotifying, "Characteristic should be notifying")
+        XCTAssertTrue(sut.isNotifying, "Characteristic should not be notifying")
     }
 
     func testCharacteristicProperties() {
-        let mockCharacteristic = MockCharacteristic(type: CBUUID(),
-                                                    properties: .writeWithoutResponse,
-                                                    value: Data(base64Encoded: "test"),
-                                                    isNotifying: true)
+        let mockCharacteristic = MockCharacteristic(uuid: CBUUID(), notifying: false, data: nil, properties: .read)
         sut = Characteristic(characteristic: mockCharacteristic)
-        XCTAssertEqual(sut.properties, .writeWithoutResponse)
+        XCTAssertEqual(sut.properties, .read)
     }
 }

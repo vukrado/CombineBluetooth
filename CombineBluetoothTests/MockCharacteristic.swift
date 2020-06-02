@@ -7,23 +7,28 @@
 
 import CoreBluetooth
 
-final class MockCharacteristic: BluetoothCharacteristic {
+final class MockCharacteristic: CBCharacteristic {
 
-    private(set) var uuid: CBUUID
+    private let cbuuid: CBUUID
+    private let notifying: Bool
+    private let data: Data?
+    private let characteristicProperties: CBCharacteristicProperties
 
-    private(set) var isNotifying: Bool
+    override var uuid: CBUUID { return cbuuid }
 
-    private(set) var value: Data?
+    override var isNotifying: Bool { return notifying }
 
-    private(set) var properties: CBCharacteristicProperties
+    override var value: Data? { return data }
 
-    init(type uuid: CBUUID,
-         properties: CBCharacteristicProperties,
-         value: Data?,
-         isNotifying: Bool) {
-        self.uuid = uuid
-        self.isNotifying = isNotifying
-        self.value = value
-        self.properties = properties
+    override var properties: CBCharacteristicProperties { return characteristicProperties }
+
+    init(uuid: CBUUID,
+         notifying: Bool,
+         data: Data?,
+         properties: CBCharacteristicProperties) {
+        self.cbuuid = uuid
+        self.notifying = notifying
+        self.data = data
+        self.characteristicProperties = properties
     }
 }

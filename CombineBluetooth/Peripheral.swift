@@ -112,6 +112,31 @@ public final class Peripheral {
 
         return discoverCharacteristicsSubject.eraseToAnyPublisher()
     }
+
+    func readValue(for characteristic: Characteristic) -> AnyPublisher<Characteristic, BluetoothError> {
+
+        let characteristicReadSubject = PassthroughSubject<Characteristic, BluetoothError>()
+
+        guard characteristic.properties == .read else {
+            characteristicReadSubject.send(completion: .failure(.nonReadableCharacteristic))
+            return characteristicReadSubject.eraseToAnyPublisher()
+        }
+
+        _ = peripheralDelegateWrapper
+            .didUpdateValueForCharacteristic
+            .sink(receiveValue: { (_, characteristic, error) in
+                guard error == nil else {
+                    characteristicReadSubject.send(completion: .failure(.failedToReadCharacteristic))
+                    return
+                }
+                characteristicReadSubject.send(Characteristic(characteristic: characteristic))
+            })
+        
+        peripheral.readValue(for: characteristic.characteristic)
+
+        return characteristicReadSubject.eraseToAnyPublisher()
+    }
+
 }
 
 public protocol BluetoothPeripheral {
@@ -121,13 +146,16 @@ public protocol BluetoothPeripheral {
     var name: String? { get }
     func discoverCharacteristics(_ characteristicUUIDs: [CBUUID]?, for service: CBService)
     func discoverServices(_ serviceUUIDs: [CBUUID]?)
+    func setNotifyValue(_ enabled: Bool, for characteristic: CBCharacteristic)
+    func readValue(for characteristic: CBCharacteristic)
 }
 
 public protocol PeripheralDelegate: class {
     func peripheral(peripheral: BluetoothPeripheral, didDiscoverServices error: Error?)
     func peripheral(peripheral: BluetoothPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?)
-//    func peripheral(peripheral: BluetoothPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?)
-//    func peripheral(peripheral: BluetoothPeripheral, didModifyServices invalidatedServices: [CBService])
+    func peripheral(peripheral: BluetoothPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?)
+    func peripheral(peripheral: BluetoothPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?)
+    func peripheral(peripheral: BluetoothPeripheral, didModifyServices invalidatedServices: [CBService])
 }
 
 extension CBPeripheral: BluetoothPeripheral {

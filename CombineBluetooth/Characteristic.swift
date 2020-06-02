@@ -10,8 +10,8 @@ import CoreBluetooth
 /// Combine wrapper for CoreBluetooth's [CBCharacteristic](https://developer.apple.com/documentation/corebluetooth/cbcharacteristic)
 public final class Characteristic {
 
-    /// A characteristic of a remote   `Peripheral`s `Service`.
-    public let characteristic: BluetoothCharacteristic
+    /// A characteristic of a remote `Peripheral`s `Service`.
+    public let characteristic: CBCharacteristic
 
     /// A 128-bit UUID that identifies this characteristic.
     public var uuid: CBUUID { characteristic.uuid }
@@ -26,7 +26,7 @@ public final class Characteristic {
     public var properties: CBCharacteristicProperties { characteristic.properties }
 
     // MARK: - Initialization
-    init(characteristic: BluetoothCharacteristic) {
+    init(characteristic: CBCharacteristic) {
         self.characteristic = characteristic
     }
 }

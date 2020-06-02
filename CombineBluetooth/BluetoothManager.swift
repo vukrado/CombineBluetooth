@@ -25,7 +25,7 @@ import Combine
 ///         print(peripheral.name)
 ///     }
 /// ```
-public final class BluetoothManager: NSObject {
+public final class BluetoothManager {
 
     // MARK: Properties
     private var centralManager: CentralManager
